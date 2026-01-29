@@ -1,32 +1,36 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
-const API_BASE_URL = "http://127.0.0.1:5000";
+const API_BASE_URL = "http://127.0.0.1:5000/api";
 
 export default function CreateJobOffer() {
-  const [company, setCompany] = useState("Acme Corp");
-  const [title, setTitle] = useState("Frontend Engineer");
-  const [description, setDescription] = useState("");
+  const navigate = useNavigate();
+  const { user, isLoaded } = useUser();
+  const [companyName, setCompanyName] = useState("");
+  const [role, setRole] = useState("");
   const [status, setStatus] = useState("OPEN");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    setResult(null);
     setIsSubmitting(true);
 
     try {
+      if (!isLoaded) throw new Error("User not loaded yet.");
+      if (!user?.id) throw new Error("You must be signed in to create a job offer.");
+
       const body = {
-        company: company.trim(),
-        role: title.trim(),
+        company_id: user.id,
+        company_name: companyName.trim(),
+        role: role.trim(),
         status,
-        ...(description.trim() ? { description: description.trim() } : {}),
       };
 
-      const res = await fetch(`${API_BASE_URL}/job_offers`, {
+      const res = await fetch(`${API_BASE_URL}/company/job_offers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -47,8 +51,7 @@ export default function CreateJobOffer() {
             : data?.message || `Request failed (${res.status})`
         );
       }
-
-      setResult(data ?? { ok: true });
+      navigate("/company");
     } catch (err) {
       setError(err?.message || "Failed to create job offer");
     } finally {
@@ -57,76 +60,49 @@ export default function CreateJobOffer() {
   }
 
   return (
-    <div style={{ maxWidth: 720, margin: "0 auto" }}>
+    <div className="page" style={{ alignItems: "stretch", textAlign: "left", maxWidth: 420 }}>
       <h1>Create a job offer</h1>
-      <p>Posts to: {`${API_BASE_URL}/job_offers`}</p>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: "grid", gap: 12 }}>
-          <label>
-            Company
+      <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <label style={{ display: "block" }}>
+            <span style={{ display: "block", marginBottom: 4, fontSize: "0.9rem" }}>Company name</span>
             <input
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
               placeholder="Acme Corp"
-              style={{ width: "100%" }}
+              style={{ width: "100%", padding: "0.6rem" }}
               required
             />
           </label>
-
-          <label>
-            Title
+          <label style={{ display: "block" }}>
+            <span style={{ display: "block", marginBottom: 4, fontSize: "0.9rem" }}>Role</span>
             <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
               placeholder="Frontend Engineer"
-              style={{ width: "100%" }}
+              style={{ width: "100%", padding: "0.6rem" }}
               required
             />
           </label>
-
-          <label>
-            Description
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is this role about?"
-              rows={5}
-              style={{ width: "100%" }}
-            />
-          </label>
-
-          <label>
-            Status
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              style={{ width: "100%" }}
-            >
+          <label style={{ display: "block" }}>
+            <span style={{ display: "block", marginBottom: 4, fontSize: "0.9rem" }}>Status</span>
+            <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ width: "100%", padding: "0.6rem" }}>
               <option value="OPEN">OPEN</option>
               <option value="CLOSED">CLOSED</option>
               <option value="DRAFT">DRAFT</option>
             </select>
           </label>
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create job offer"}
+          <button type="submit" disabled={isSubmitting} style={{ marginTop: "0.5rem", padding: "0.75rem" }}>
+            {isSubmitting ? "Creating…" : "Create job offer"}
           </button>
         </div>
       </form>
 
       {error ? (
-        <pre style={{ marginTop: 16, color: "crimson", whiteSpace: "pre-wrap" }}>
+        <p style={{ marginTop: "1rem", color: "#e57373", fontSize: "0.9rem" }}>
           {error}
-        </pre>
-      ) : null}
-
-      {result ? (
-        <pre style={{ marginTop: 16, whiteSpace: "pre-wrap" }}>
-          {typeof result === "string"
-            ? result
-            : JSON.stringify(result, null, 2)}
-        </pre>
+        </p>
       ) : null}
     </div>
   );

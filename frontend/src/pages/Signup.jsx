@@ -1,5 +1,9 @@
 import { SignUp } from "@clerk/clerk-react";
 
 export default function Signup() {
-  return <SignUp afterSignUpUrl="/choose-role" />;
+  return (
+    <div className="page" style={{ justifyContent: "center" }}>
+      <SignUp afterSignUpUrl="/choose-role" />
+    </div>
+  );
 }
