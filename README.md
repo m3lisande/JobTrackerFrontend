@@ -21,7 +21,6 @@ Before running the frontend, you need:
 From the **frontend** folder:
 
 ```bash
-cd frontend
 npm install
 ```
 
@@ -33,7 +32,7 @@ This installs React, Vite, React Router, Clerk, ESLint, and the rest of the depe
 
 The app uses **Clerk** for auth and expects a publishable key in the environment.
 
-1. In the `frontend` folder, create a file named `.env` (if it doesn’t exist).
+1. In the `JobTrackerFrontend` folder, create a file named `.env` (if it doesn’t exist).
 
 2. Add:
 
