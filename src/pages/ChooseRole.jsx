@@ -1,7 +1,7 @@
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-const API_BASE_URL = "http://127.0.0.1:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 export default function ChooseRole() {
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
